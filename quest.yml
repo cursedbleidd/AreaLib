@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment # Контроллирует поды автоматически, "держит" их состояние в желаемом(описанном)
+metadata:
+  name: web-app
+  labels:
+    app: web-app
+spec:
+  replicas: 3  # 3 podа
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-app-container
+        image: docker-image  # Докер-образ
+        resources:
+          requests:
+            memory: 128Mi # Достаточноое кол-во памяти
+            cpu: 100m       # Достаточноое кол-во CPU
+          limits:
+            memory: 128Mi # Ограничение по памяти для минимизации потребления
+            cpu: 500m       # Ограничение по CPU для минимизации потребления
+        ports:
+        - containerPort: 80  # Открытый порт для приложения
+        readinessProbe:      # Проб для проверки готовности podа, если pod не готов, он не принимает запросов (ip удаляется из списка точек)
+          httpGet:
+            path: /     
+            port: 80
+          initialDelaySeconds: 5  # Задержка перед первой проверкой, т.к инициализация занимает 5-10 с
+          periodSeconds: 5         # Интервал проверки каждые 5 секунд
+        livenessProbe:       # Проб для проверки живучести podа, если pod "умрет", контроллер запустит механзимы перезапуска
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15  # Время на инициализацию приложения
+          periodSeconds: 10        # Проверка каждые 10 секунд
+      affinity:
+        podAntiAffinity:        # Требование размещать поды на разных нодах для отказоустойчивости
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web-app
+            topologyKey: "kubernetes.io/hostname"  # Разделение по узлам (нодам)
