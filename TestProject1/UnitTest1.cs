@@ -25,6 +25,22 @@ namespace TestProject1
         {
             Assert.Throws<ArgumentException>(() => new Triangle(a, b, c));
         }
+        [TestCase(-10, 10)]
+        [TestCase(1, 0)]
+        [TestCase(3, -2)]
+        [TestCase(0, 2)]
+        [TestCase(0, 0)]
+        public void Rectangle_IncorrectInput(double a, double b)
+        {
+            Assert.Throws<ArgumentException>(() => new Rectangle(a, b));
+        }
+        [TestCase(5, 10)]
+        [TestCase(6, 10)]
+        [TestCase(7, 5)]
+        public void Area_Reactangle(double a, double b)
+        {
+            Assert.That(Area.Calc(new Rectangle(a, b)), Is.EqualTo(a * b));
+        }
         [Test]
         public void Circle_CorrectInput()
         {
